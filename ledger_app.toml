@@ -4,3 +4,4 @@ sdk = "C"
 devices = ["flex", "stax"]
 
 [tests]
+pytest_directory = "./tests/"

@@ -330,7 +330,6 @@ bool validate_and_display_transaction(
     return true;
 }
 
-
 bool sign_custom_inputs(
     dispatcher_context_t *dc,
     sign_psbt_state_t *st,

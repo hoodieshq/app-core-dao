@@ -22,20 +22,18 @@ $ git submodule update --init --recursive
 Compile the app [as usual](https://github.com/LedgerHQ/app-boilerplate#quick-start-guide).
 You should be able to launch it using speculos.
 
-## Running the test
+## Running the tests
 
-Install `ledger_bitcoin` in a virtual environment:
+Create a Python virtual environment and install the requirements:
 
 ```
 $ python -m venv venv
 $ source venv/bin/activate
-$ pip install ledger_bitcoin
+$ pip install -r tests/requirements.txt
 ```
 
-Launch the app in speculos using another terminal, then launch the test script:
+Launch the test suite; for example, if you compiled the app for Ledger Flex:
 
 ```
-python test_stake.py
-python test_unstake.py
-python test_restake.py
+$ pytest --device=flex
 ```
