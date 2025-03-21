@@ -24,4 +24,4 @@ jobs:
         run: |
           git submodule update --init --recursive
           git submodule update --remote --recursive
-          git diff --exit-code
+          git diff --exit-code || { echo "The submodule is not up to date"; exit 1; }
