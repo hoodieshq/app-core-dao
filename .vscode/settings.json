@@ -1,5 +1,13 @@
 {
     "python.analysis.extraPaths": [
         "./bitcoin_app_base"
-    ]
+    ],
+    "ledgerDevTools.appSettings": {
+        "selectedVariant": "core_dao_testnet",
+        "testsList": [
+            "test_xor",
+            "test_sign_psbt"
+        ],
+        "selectedUseCase": "release"
+    }
 }
