@@ -1,0 +1,27 @@
+name: Check that the submodule is up to date
+
+# This workflow ensures that the submodule is up to date with the 'baseapp' branch
+# of the https://github.com/LedgerHQ/app-bitcoin-new repository.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+      - main
+      - develop
+  pull_request:
+
+jobs:
+  check_submodule:
+    name: Check submodule
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone
+        uses: actions/checkout@v4
+
+      - name: Compare submodule with remote branch
+        run: |
+          git submodule update --init --recursive
+          git submodule update --remote --recursive
+          git diff --exit-code
