@@ -1,7 +1,3 @@
-# Ledger Boilerplate for Bitcoin Smart Contract Applications
-
-This is a boilerplate application which can be forked to start a new project for the Ledger Nano X/SP, Stax and Flex that can sign specialized types of transactions, while building on top of the tooling of the Ledger Bitcoin application.
-
 ## CoreDAO app
 
 This repository implements the CoreDAO protocol for clear signing transactions of a specific format that the bitcoin app does not support.
