@@ -323,13 +323,33 @@ bool validate_and_display_transaction(
 
     uint64_t fee = st->inputs_total_amount - st->outputs.total_amount;
 
+<<<<<<< HEAD
     if (!display_transaction(dc, internal_value, fee, &core_tx_info)) {
+=======
+    if (!display_transaction(dc, internal_value, magic_input_value, fee)) {
+        SEND_SW(dc, SW_DENY);
+>>>>>>> 8a6cbf2 (Improve README and code documentation)
         return false;
     }
 
     return true;
 }
 
+/**
+ * @brief Signs the custom (special) input.
+ *
+ * This function must be implemented in order to sign for all the inputs that are not internal.
+ * If not implemented, only the internal inputs are signed (handled by the base app).
+ *
+ * This function must return false in case of any error. In that case, an error status word should
+ * be sent. If the function returns true, no status word should be sent.
+ *
+ * @param dc Dispatcher context.
+ * @param st PSBT signing state.
+ * @param tx_hashes Transaction hashes.
+ * @param internal_inputs Bitvector representing internal inputs.
+ * @return true if signing was successful, false otherwise.
+ */
 bool sign_custom_inputs(
     dispatcher_context_t *dc,
     sign_psbt_state_t *st,
