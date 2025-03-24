@@ -323,12 +323,7 @@ bool validate_and_display_transaction(
 
     uint64_t fee = st->inputs_total_amount - st->outputs.total_amount;
 
-<<<<<<< HEAD
     if (!display_transaction(dc, internal_value, fee, &core_tx_info)) {
-=======
-    if (!display_transaction(dc, internal_value, magic_input_value, fee)) {
-        SEND_SW(dc, SW_DENY);
->>>>>>> 8a6cbf2 (Improve README and code documentation)
         return false;
     }
 
