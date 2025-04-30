@@ -8,36 +8,88 @@ from .conftest import RaggerClient
 from .instructions import *
 
 
-def test_sign_psbt(navigator: Navigator, firmware: Firmware, client: RaggerClient, test_name: str) -> None:
+def test_sign_stake_tx(navigator: Navigator, firmware: Firmware, client: RaggerClient, test_name: str) -> None:
     wallet = WalletPolicy(
         "",
-        "tr(@0/**)",
+        "wpkh(@0/**)",
         [
-            "[f5acc2fd/86'/1'/0']tpubDDKYE6BREvDsSWMazgHoyQWiJwYaDDYPbCFjYxN3HFXJP5fokeiK4hwK5tTLBNEDBwrDXn8cQ4v9b2xdW62Xr5yxoQdMu1v6c7UDXYVH27U"
+            "[f5acc2fd/84'/1'/0']tpubDCtKfsNyRhULjZ9XMS4VKKtVcPdVDi8MKUbcSD9MJDyjRu1A2ND5MiipozyyspBT9bg8upEp7a8EAgFxNxXn1d7QkdbL52Ty5jiSLcxPt1P",
         ],
     )
     psbt = PSBT()
-    psbt.deserialize("cHNidP8BAJUCAAAAAqG4I9IzbWlLSTTvm25bfeF6BVE9qKKdsCouy8eppv5tAQAAAAD9////FveaMWPsN+g8VMbi6P9s2IOOg17zrcPf1ZYnyUnsJAkAAAAAAP3///8C8qapAAAAAAAiUSALjnSGvDBqCu+3p8AK8EBVQtsazXPuzKgnccz1/l62DwAAAAAAAAAABWoDRk9PAAAAAAABASunhqkAAAAAACJRINj08dGJltthuxyvVCPeJdih7unJUNN+b/oCMBLV5i4NIRYhLqKFalzxEOZqK+nXNTFHk/28s4iyuPE/K2remC569RkA9azC/VYAAIABAACAAAAAgAEAAAAAAAAAARcgIS6ihWpc8RDmaivp1zUxR5P9vLOIsrjxPytq3pguevUAAQErOTAAAAAAAAAiUSCHtA8hlu4BzfGu7dqCwmls1lYlShMPirSpdE1UaM3XBSEWh7QPIZbuAc3xru3agsJpbNZWJUoTD4q0qXRNVGjN1wURAPWswv1WAACAAQAAgGMAAIABFyCHtA8hlu4BzfGu7dqCwmls1lYlShMPirSpdE1UaM3XBQABBSACkIHs5WFqocuZMZ/Eh07+5H8IzrpfYARjbIxDQJpfCiEHApCB7OVhaqHLmTGfxIdO/uR/CM66X2AEY2yMQ0CaXwoZAPWswv1WAACAAQAAgAAAAIABAAAAAgAAAAAA")
-
+    psbt.deserialize("cHNidP8BAgQCAAAAAQMEAAAAAAEEAQEBBQECAfsEAgAAAAABAMACAAAAAAEBkteTU5STYpaazD6mm2dBYgUIh1J35DYGPfH2tMV/iEEAAAAAAP////8BgDl6EgAAAAAWABQTR+gqA3tduzjPjEdZ8kKx9cfgmgJIMEUCIQCJ2mCr7T1A+h807JBkjVqj1lbKUoEB7FVqyeQUkbiW4AIgC1q0vsCiDGu2zqgACafrg3XsPsWPIJk6VIeB9iedgEcBIQM90rAt3EwCSzePotxDq2uBMYtEizXhd7qP26TzCQZ8IAAAAAABAR+AOXoSAAAAABYAFBNH6CoDe127OM+MR1nyQrH1x+CaIgYCfLddNLAFxOufYrvyxFfXY46BPnV+/OyPpoZ32VC2NmIY9azC/VQAAIABAACAAAAAgAAAAAAAAAAAAQ4g+tXQt6sxuPtHpWZY8En2c8OATtJN2KKxR6oZk+bvLvUBDwQAAAAAARAE/f///wABAwgAo+ERAAAAAAEEIgAg2uIp+SyXvQOY3oP3uxjVR//gdKU0sMqrEm3GdzuJDTQAAQMIAAAAAAAAAAABBFNqTFBTQVQrAQRb3mC30Oa3WMpd2MYdN3osXxr1HsGp4gn16gA2yML0EHijzr7lfYpH1QEEH14OZrF1dqkUE0foKgN7Xbs4z4xHWfJCsfXH4JqIrAA=")
+    
     sign_results = client.sign_psbt(psbt, wallet, None,
                                     navigator=navigator,
                                     instructions=sign_psbt_instruction_approve(
                                         firmware),
                                     testname=test_name)
 
-    assert len(sign_results) == 2
+    assert len(sign_results) == 1
 
     signatures = list(sorted(sign_results))
 
     # Test that the signature is for the correct pubkey
     i_0, psig_0 = signatures[0]
     assert i_0 == 0
-    # This is the key derived at m/86'/1'/0'/1/0, tweaked as per BIP-86
+    # This is the key derived at m/84'/1'/0'/0/0
     assert psig_0.pubkey == bytes.fromhex(
-        "d8f4f1d18996db61bb1caf5423de25d8a1eee9c950d37e6ffa023012d5e62e0d")
+        "027cb75d34b005c4eb9f62bbf2c457d7638e813e757efcec8fa68677d950b63662")
+    
+def test_sign_unstake_tx(navigator: Navigator, firmware: Firmware, client: RaggerClient, test_name: str) -> None:
+    wallet = WalletPolicy(
+        "",
+        "wpkh(@0/**)",
+        [
+            "[f5acc2fd/84'/1'/0']tpubDCtKfsNyRhULjZ9XMS4VKKtVcPdVDi8MKUbcSD9MJDyjRu1A2ND5MiipozyyspBT9bg8upEp7a8EAgFxNxXn1d7QkdbL52Ty5jiSLcxPt1P",
+        ],
+    )
+    psbt = PSBT()
+    psbt.deserialize("cHNidP8BAgQCAAAAAQMEAAAAAAEEAQEBBQEBAfsEAgAAAAABAP0nAQEAAAAAAQH61dC3qzG4+0elZljwSfZzw4BO0k3YorFHqhmT5u8u9QAAAAAA/f///wIAo+ERAAAAACIAINriKfksl70DmN6D97sY1Uf/4HSlNLDKqxJtxnc7iQ00AAAAAAAAAABTakxQU0FUKwEEW95gt9Dmt1jKXdjGHTd6LF8a9R7BqeIJ9eoANsjC9BB4o86+5X2KR9UBBB9eDmaxdXapFBNH6CoDe127OM+MR1nyQrH1x+CaiKwCRzBEAiB+jg0MLSnxXcDbof13W8IFHTpm5/+wiTfvPny1T1ZS5AIgXgtvhtl4s8wC2pcTVr9MPQfi1dyF6x5b8aQYuKal3Q8BIQJ8t100sAXE659iu/LEV9djjoE+dX787I+mhnfZULY2YgAAAAABASsAo+ERAAAAACIAINriKfksl70DmN6D97sY1Uf/4HSlNLDKqxJtxnc7iQ00AQQgBB9eDmaxdXapFBNH6CoDe127OM+MR1nyQrH1x+CaiKwBBSAEH14OZrF1dqkUE0foKgN7Xbs4z4xHWfJCsfXH4JqIrCIGAny3XTSwBcTrn2K78sRX12OOgT51fvzsj6aGd9lQtjZiGPWswv1UAACAAQAAgAAAAIAAAAAAAAAAAAEOIC2nPuT61F9PDRV4f9qwMR0OD2gvPJbZo7MelOVNf+WVAQ8EAAAAAAEQBP3///8AIgICcbW3ea2HCDhYd5e89vDHrsWr52pwnXJPSNLibPh08KAY9azC/VQAAIABAACAAAAAgAEAAAAAAAAAAQMIAKPhEQAAAAABBBYAFDXG4N1tPISxa6iF3Kc6yGPQtZPsAA==")
+    
+    sign_results = client.sign_psbt(psbt, wallet, None,
+                                    navigator=navigator,
+                                    instructions=sign_psbt_instruction_approve(
+                                        firmware),
+                                    testname=test_name)
 
-    i_1, psig_1 = signatures[1]
-    assert i_1 == 1
-    # This is the key derived at m/86'/1'/99'/1/0, and it is NOT tweaked
-    assert psig_1.pubkey == bytes.fromhex(
-        "87b40f2196ee01cdf1aeedda82c2696cd656254a130f8ab4a9744d5468cdd705")
+    assert len(sign_results) == 1
+
+    signatures = list(sorted(sign_results))
+
+    # Test that the signature is for the correct pubkey
+    i_0, psig_0 = signatures[0]
+    assert i_0 == 0
+    # This is the key derived at m/84'/1'/0'/0/0
+    assert psig_0.pubkey == bytes.fromhex(
+        "027cb75d34b005c4eb9f62bbf2c457d7638e813e757efcec8fa68677d950b63662")
+  
+
+    
+def test_sign_restake_tx(navigator: Navigator, firmware: Firmware, client: RaggerClient, test_name: str) -> None:
+    wallet = WalletPolicy(
+        "",
+        "wpkh(@0/**)",
+        [
+            "[f5acc2fd/84'/1'/0']tpubDCtKfsNyRhULjZ9XMS4VKKtVcPdVDi8MKUbcSD9MJDyjRu1A2ND5MiipozyyspBT9bg8upEp7a8EAgFxNxXn1d7QkdbL52Ty5jiSLcxPt1P",
+        ],
+    )
+    psbt = PSBT()
+    psbt.deserialize("cHNidP8BAgQCAAAAAQMEAAAAAAEEAQEBBQECAfsEAgAAAAABAP0nAQEAAAAAAQH61dC3qzG4+0elZljwSfZzw4BO0k3YorFHqhmT5u8u9QAAAAAA/f///wIAo+ERAAAAACIAINriKfksl70DmN6D97sY1Uf/4HSlNLDKqxJtxnc7iQ00AAAAAAAAAABTakxQU0FUKwEEW95gt9Dmt1jKXdjGHTd6LF8a9R7BqeIJ9eoANsjC9BB4o86+5X2KR9UBBB9eDmaxdXapFBNH6CoDe127OM+MR1nyQrH1x+CaiKwCRzBEAiB+jg0MLSnxXcDbof13W8IFHTpm5/+wiTfvPny1T1ZS5AIgXgtvhtl4s8wC2pcTVr9MPQfi1dyF6x5b8aQYuKal3Q8BIQJ8t100sAXE659iu/LEV9djjoE+dX787I+mhnfZULY2YgAAAAABASsAo+ERAAAAACIAINriKfksl70DmN6D97sY1Uf/4HSlNLDKqxJtxnc7iQ00AQQgBB9eDmaxdXapFBNH6CoDe127OM+MR1nyQrH1x+CaiKwBBSAEH14OZrF1dqkUE0foKgN7Xbs4z4xHWfJCsfXH4JqIrCIGAny3XTSwBcTrn2K78sRX12OOgT51fvzsj6aGd9lQtjZiGPWswv1UAACAAQAAgAAAAIAAAAAAAAAAAAEOIC2nPuT61F9PDRV4f9qwMR0OD2gvPJbZo7MelOVNf+WVAQ8EAAAAAAEQBP3///8AAQMIAKPhEQAAAAABBCIAINriKfksl70DmN6D97sY1Uf/4HSlNLDKqxJtxnc7iQ00AAEDCAAAAAAAAAAAAQRTakxQU0FUKwEEW95gt9Dmt1jKXdjGHTd6LF8a9R7BqeIJ9eoANsjC9BB4o86+5X2KR9UBBB9eDmaxdXapFBNH6CoDe127OM+MR1nyQrH1x+CaiKwA")
+    
+    sign_results = client.sign_psbt(psbt, wallet, None,
+                                    navigator=navigator,
+                                    instructions=sign_psbt_instruction_approve(
+                                        firmware),
+                                    testname=test_name)
+
+    assert len(sign_results) == 1
+
+    signatures = list(sorted(sign_results))
+
+    # Test that the signature is for the correct pubkey
+    i_0, psig_0 = signatures[0]
+    assert i_0 == 0
+    # This is the key derived at m/84'/1'/0'/0/0
+    assert psig_0.pubkey == bytes.fromhex(
+        "027cb75d34b005c4eb9f62bbf2c457d7638e813e757efcec8fa68677d950b63662")

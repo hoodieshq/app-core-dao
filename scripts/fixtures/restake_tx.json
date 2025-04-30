@@ -1,0 +1,25 @@
+{
+    "policy": "wpkh(@0/**)",
+    "wallet": "[f5acc2fd/84'/1'/0']tpubDCtKfsNyRhULjZ9XMS4VKKtVcPdVDi8MKUbcSD9MJDyjRu1A2ND5MiipozyyspBT9bg8upEp7a8EAgFxNxXn1d7QkdbL52Ty5jiSLcxPt1P",
+    "tx": {
+        "version": 2,
+        "inputs": [
+            {
+                "tx": "01000000000101fad5d0b7ab31b8fb47a56658f049f673c3804ed24dd8a2b147aa1993e6ef2ef50000000000fdffffff0200a3e11100000000220020dae229f92c97bd0398de83f7bb18d547ffe074a534b0caab126dc6773b890d340000000000000000536a4c505341542b01045bde60b7d0e6b758ca5dd8c61d377a2c5f1af51ec1a9e209f5ea0036c8c2f41078a3cebee57d8a47d501041f5e0e66b17576a9141347e82a037b5dbb38cf8c4759f242b1f5c7e09a88ac0247304402207e8e0d0c2d29f15dc0dba1fd775bc2051d3a66e7ffb08937ef3e7cb54f5652e402205e0b6f86d978b3cc02da971356bf4c3d07e2d5dc85eb1e5bf1a418b8a6a5dd0f0121027cb75d34b005c4eb9f62bbf2c457d7638e813e757efcec8fa68677d950b6366200000000",
+                "index": 0,
+                "redeem_script": "041f5e0e66b17576a9141347e82a037b5dbb38cf8c4759f242b1f5c7e09a88ac",
+                "recipient": "0/0"
+            }
+        ],
+        "outputs": [
+            {
+                "script": "0020dae229f92c97bd0398de83f7bb18d547ffe074a534b0caab126dc6773b890d34",
+                "value": 300000000
+            },
+            {
+                "script": "6a4c505341542b01045bde60b7d0e6b758ca5dd8c61d377a2c5f1af51ec1a9e209f5ea0036c8c2f41078a3cebee57d8a47d501041f5e0e66b17576a9141347e82a037b5dbb38cf8c4759f242b1f5c7e09a88ac",
+                "value": 0
+            }
+        ] 
+    }
+}

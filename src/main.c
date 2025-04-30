@@ -353,7 +353,6 @@ bool sign_custom_inputs(
     UNUSED(dc), UNUSED(st), UNUSED(tx_hashes), UNUSED(internal_inputs);
     merkleized_map_commitment_t input_map;
     uint8_t sighash[32];
-    uint8_t redeem_script[REDEEM_SCRIPT_LEN];
     uint32_t path[] = CORE_DERIVATION_PATH;
     uint64_t amount;
     uint8_t script_pubkey[2 + SCRIPT_HASH_LEN];
