@@ -22,8 +22,15 @@
 #define OP_PUSHBYTES_20 20
 #define OP_PUSHBYTES_32 32
 
+#ifdef CORE_DAO_MAINNET
+#define CORE_DERIVATION_PATH \
+    { 84 | H, 0 | H, 0 | H, 0, 0 }
+#elif CORE_DAO_TESTNET
 #define CORE_DERIVATION_PATH \
     { 84 | H, 1 | H, 0 | H, 0, 0 }
+#else
+#error "Net type must be defined. Define CORE_DAO_MAINNET or CORE_DAO_TESTNET"
+#endif
 #define CORE_DERIVATION_PATH_LEN 5
 
 typedef enum {

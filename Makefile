@@ -43,10 +43,12 @@ APP_DESCRIPTION ="This app enables to\nstake bitcoin\non CoreDAO."
 ifeq ($(COIN),core_dao)
 APPNAME ="CoreDAO"
 BITCOIN_NETWORK =mainnet
+DEFINES += CORE_DAO_MAINNET
 
 else ifeq ($(COIN),core_dao_testnet)
 APPNAME ="CoreDAO Testnet"
 BITCOIN_NETWORK =testnet
+DEFINES += CORE_DAO_TESTNET
 
 else ifeq ($(filter clean,$(MAKECMDGOALS)),)
 $(error Unsupported COIN - use $(VARIANT_VALUES))
