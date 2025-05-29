@@ -32,17 +32,19 @@ bool display_transaction(
     // Format values
     char *chain_id;
     char *operation_type = NULL;
-    char value_str[32], fee_str[32];
-    char unstake_value_str[32];
-    char delegator_str[40], validator_str[40];
-    char locktime_str[DATETIME_STR_LEN];
-    char core_fee_str[4];
+    char value_str[32] = { 0 };
+    char fee_str[32] = { 0 };
+    char unstake_value_str[32] = { 0 };
+    char delegator_str[41] = { 0 };
+    char validator_str[41] = { 0 };
+    char locktime_str[DATETIME_STR_LEN] = { 0 };
+    char core_fee_str[4] = { 0 };
     uint64_t value_spent_abs = value_spent < 0 ? -value_spent : value_spent;
     format_sats_amount(COIN_COINID_SHORT, value_spent_abs, value_str);
     format_sats_amount(COIN_COINID_SHORT, fee, fee_str);
     format_sats_amount(COIN_COINID_SHORT, info->unlock_amount, unstake_value_str);
-    buffer_to_hex(info->delegator, 20, delegator_str, 40);
-    buffer_to_hex(info->validator, 20, validator_str, 40);
+    buffer_to_hex(info->delegator, 20, delegator_str, 41);
+    buffer_to_hex(info->validator, 20, validator_str, 41);
     timestamp_to_string(info->locktime, locktime_str);
     snprintf(core_fee_str, 4, "%d", info->fee);
 
@@ -92,7 +94,7 @@ bool display_transaction(
 
         pairs[n_pairs++] = (nbgl_layoutTagValue_t){
             .item = "Validator",
-            .value = delegator_str,
+            .value = validator_str,
             .forcePageStart = true
         };
 

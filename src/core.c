@@ -156,8 +156,23 @@ bool get_core_pubkey_hash160(uint8_t hash160[static 20]) {
     return true;
 }
 
-void buffer_to_hex(uint8_t *buffer, size_t buffer_len, char *out, size_t out_len) {
-    for (size_t i = 0; i < buffer_len && i < out_len; i++) {
-        snprintf(out + i * 2, out_len - i * 2, "%02x", buffer[i]);
+void buffer_to_hex(const uint8_t *buffer,
+                   size_t          buffer_len,
+                   char           *out,
+                   size_t          out_len)
+{
+    static const char lut[] = "0123456789abcdef";
+
+    // Each byte needs two chars. Reserve one byte for '\0'
+    size_t max_bytes = (out_len - 1) / 2;
+
+    size_t i;
+    for (i = 0; i < buffer_len && i < max_bytes; ++i) {
+        uint8_t byte = buffer[i];
+        out[i * 2]     = lut[byte >> 4];   /* high nibble */
+        out[i * 2 + 1] = lut[byte & 0x0F]; /* low  nibble */
     }
+
+    // Always terminate the string
+    out[i * 2] = '\0';
 }

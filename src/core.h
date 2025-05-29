@@ -77,4 +77,4 @@ bool get_core_pubkey_hash160(uint8_t hash160[static 20]);
 
 bool get_core_redeem_script( uint32_t locktime, uint8_t redeem_script[static REDEEM_SCRIPT_LEN]);
 
-void buffer_to_hex(uint8_t *buffer, size_t buffer_len, char *out, size_t out_len);
+void buffer_to_hex(const uint8_t *buffer, size_t buffer_len, char *out, size_t out_len);
