@@ -1,3 +1,5 @@
+#ifdef HAVE_NBGL
+
 #include "display.h"
 
 #include "../bitcoin_app_base/src/ui/display.h"
@@ -145,3 +147,5 @@ bool display_transaction(
 
     return true;
 }
+
+#endif // HAVE_NBGL

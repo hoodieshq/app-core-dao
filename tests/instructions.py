@@ -22,8 +22,7 @@ def sign_psbt_instruction_approve(model: Firmware, save_screenshot: bool = True)
     instructions = Instructions(model)
 
     if model.name.startswith("nano"):
-        instructions.new_request("Continue", save_screenshot=save_screenshot)
-        instructions.same_request("Sign", save_screenshot=save_screenshot)
+        instructions.new_request("Approve", save_screenshot=save_screenshot)
     else:
         instructions.new_request("Review", NavInsID.USE_CASE_REVIEW_TAP, NavInsID.USE_CASE_REVIEW_TAP,
                                  save_screenshot=save_screenshot)

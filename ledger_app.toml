@@ -1,7 +1,7 @@
 [app]
 build_directory = "./"
 sdk = "C"
-devices = ["flex", "stax"]
+devices = ["nanox", "nanos+", "flex", "stax"]
 
 [tests]
 pytest_directory = "./tests/"
