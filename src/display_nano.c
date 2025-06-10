@@ -16,7 +16,7 @@
 // Enough for every optional screen + confirm/deny
 #define MAX_FLOW_STEPS 15
 
-static char g_operation_type[12];
+static char g_operation_type[16];
 static char g_value_str[32];
 static char g_unstake_value_str[32];
 static char g_fee_str[32];
@@ -27,8 +27,12 @@ static char g_chain_id_str[10];
 static char g_locktime_str[DATETIME_STR_LEN];
 
 UX_STEP_NOCB(ux_tx_type_step,
-             bnnn_paging,
-             {.title = "Transaction type", .text = g_operation_type});
+             pnn,
+             {
+                 &C_nanos_app_14,
+                 "Review transaction",
+                 g_operation_type,
+            });
 
 UX_STEP_NOCB(ux_tx_stake_amount_step,
              bnnn_paging,
@@ -46,28 +50,28 @@ UX_STEP_NOCB(ux_tx_validator_step,
              bnnn_paging,
              {.title = "Validator", .text = g_validator_str});
 
-UX_STEP_NOCB(ux_tx_network_step,
-             bnnn_paging,
-             {.title = "Network", .text = g_chain_id_str});
-
 UX_STEP_NOCB(ux_tx_locktime_step,
              bnnn_paging,
-             {.title = "Locktime (UTC+0)", .text = g_locktime_str});
+             {.title = "Locktime (UTC)\n", .text = g_locktime_str});
 
 UX_STEP_NOCB(ux_tx_core_fee_step,
              bnnn_paging,
-             {.title = "Core fee", .text = g_core_fee_str});
+             {.title = "CORE fee", .text = g_core_fee_str});
 
 UX_STEP_NOCB(ux_tx_fee_step,
              bnnn_paging,
-             {.title = "Fee", .text = g_fee_str});
+             {.title = "Fees", .text = g_fee_str});
+
+UX_STEP_NOCB(ux_tx_network_step,
+             bnnn_paging,
+             {.title = "Network", .text = g_chain_id_str});
 
 UX_STEP_CB(ux_confirm_step,
            pb,
            set_ux_flow_response(true),
            {
                &C_icon_validate_14,
-               "Approve",
+               "Sign transaction",
            });
 
 UX_STEP_CB(ux_reject_step,
@@ -75,7 +79,7 @@ UX_STEP_CB(ux_reject_step,
            set_ux_flow_response(false),
            {
                &C_icon_crossmark,
-               "Reject",
+               "Reject transaction",
            });
 
 static const ux_flow_step_t *g_flow[MAX_FLOW_STEPS];
@@ -102,10 +106,15 @@ bool display_transaction(dispatcher_context_t *dc,
         info->chain_id == CHAIN_ID_TESTNET ? "Testnet"   :
         info->chain_id == CHAIN_ID_TESTNET2? "Testnet2"  : "Unknown");
 
-    strcpy(g_operation_type,
-        (info->type & TYPE_TX_LOCK && info->type & TYPE_TX_UNLOCK) ? "Restake" :
-        (info->type & TYPE_TX_LOCK)                                 ? "Stake"   :
-                                                                      "Unstake");
+    const char * operation_ty = info->type & TYPE_TX_LOCK && info->type & TYPE_TX_UNLOCK ? "restake" :
+        info->type & TYPE_TX_LOCK ? "stake" : "unstake";
+
+    snprintf(
+        g_operation_type,
+        sizeof(g_operation_type),
+        "to %s BTC",
+        operation_ty
+    );
 
     // Assemble the UX flow
     size_t i = 0;
@@ -120,12 +129,14 @@ bool display_transaction(dispatcher_context_t *dc,
     if (info->type & TYPE_TX_LOCK) {
         g_flow[i++] = &ux_tx_delegator_step;
         g_flow[i++] = &ux_tx_validator_step;
-        g_flow[i++] = &ux_tx_network_step;
         g_flow[i++] = &ux_tx_locktime_step;
         g_flow[i++] = &ux_tx_core_fee_step;
     }
 
     g_flow[i++] = &ux_tx_fee_step;
+    if (info->chain_id != CHAID_ID_MAINNET)  {
+        g_flow[i++] = &ux_tx_network_step;
+    }
     g_flow[i++] = &ux_confirm_step;
     g_flow[i++] = &ux_reject_step;
     g_flow[i++] = FLOW_END_STEP;
