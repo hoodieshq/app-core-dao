@@ -34,6 +34,9 @@ bool display_transaction(
     // Format values
     char *chain_id;
     char *operation_type = NULL;
+
+    char review_title[36] = { 0 };
+    char sign_title[36] = { 0 };
     char value_str[32] = { 0 };
     char fee_str[32] = { 0 };
     char unstake_value_str[32] = { 0 };
@@ -61,18 +64,17 @@ bool display_transaction(
     }
 
     if (info->type & TYPE_TX_LOCK && info->type & TYPE_TX_UNLOCK) {
-        operation_type = (char *)"Restake";
+        operation_type = (char *)"restake";
     } else if (info->type & TYPE_TX_LOCK) {
-        operation_type = (char *)"Stake";
+        operation_type = (char *)"stake";
     } else if (info->type & TYPE_TX_UNLOCK) {
-        operation_type = (char *)"Unstake";
+        operation_type = (char *)"unstake";
     }
 
+    snprintf(review_title, sizeof(review_title), "Review transaction to\n %s BTC", operation_type);
+    snprintf(sign_title, sizeof(sign_title), "Sign transaction to\n %s BTC?", operation_type);
+
     int n_pairs = 0;
-    pairs[n_pairs++] = (nbgl_layoutTagValue_t){
-        .item = "Transaction type",
-        .value = operation_type,
-    };
 
     if (info->type & TYPE_TX_LOCK) {
         pairs[n_pairs++] = (nbgl_layoutTagValue_t){
@@ -97,31 +99,32 @@ bool display_transaction(
         pairs[n_pairs++] = (nbgl_layoutTagValue_t){
             .item = "Validator",
             .value = validator_str,
-            .forcePageStart = true
+            .forcePageStart = true,
         };
 
         pairs[n_pairs++] = (nbgl_layoutTagValue_t){
-            .item = "Network",
-            .value = chain_id,
-        };
-
-        pairs[n_pairs++] = (nbgl_layoutTagValue_t){
-            .item = "Locktime (UTC+0)",
+            .item = "Locktime (UTC)",
             .value = locktime_str,
-            .forcePageStart = true
         };
 
         pairs[n_pairs++] = (nbgl_layoutTagValue_t){
-            .item = "Core fee",
+            .item = "CORE fee",
             .value = core_fee_str
         };
     }
 
     pairs[n_pairs++] = (nbgl_layoutTagValue_t){
-        .item = "Fee",
+        .item = "Fees",
         .value = fee_str,
+        .forcePageStart = info->type != TYPE_TX_UNLOCK,
     };
     
+    if (info->chain_id != CHAID_ID_MAINNET) {
+        pairs[n_pairs++] = (nbgl_layoutTagValue_t){
+            .item = "Network",
+            .value = chain_id,
+        };
+    }
 
     assert(n_pairs <= MAX_N_PAIRS);
 
@@ -133,9 +136,9 @@ bool display_transaction(
     nbgl_useCaseReview(TYPE_TRANSACTION,
                        &pairList,
                        &C_App_64px,
-                       "Review CoreDAO\ntransaction",
+                       review_title,
                        NULL,
-                       "Sign CoreDAO\ntransaction?",
+                       sign_title,
                        review_choice);
 
     // blocking call until the user approves or rejects the transaction
