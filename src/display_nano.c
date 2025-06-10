@@ -101,10 +101,12 @@ bool display_transaction(dispatcher_context_t *dc,
     buffer_to_hex(info->validator, 20, g_validator_str, 41);
     timestamp_to_string(info->locktime, g_locktime_str);
 
-    strcpy(g_chain_id_str,
+    strncpy(g_chain_id_str,
         info->chain_id == CHAID_ID_MAINNET ? "Mainnet"   :
         info->chain_id == CHAIN_ID_TESTNET ? "Testnet"   :
-        info->chain_id == CHAIN_ID_TESTNET2? "Testnet2"  : "Unknown");
+        info->chain_id == CHAIN_ID_TESTNET2? "Testnet2"  : "Unknown",
+        sizeof(g_chain_id_str)
+    );
 
     const char * operation_ty = info->type & TYPE_TX_LOCK && info->type & TYPE_TX_UNLOCK ? "restake" :
         info->type & TYPE_TX_LOCK ? "stake" : "unstake";
