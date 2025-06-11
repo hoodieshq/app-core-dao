@@ -40,9 +40,9 @@ function witnessUtxoToString(witnessUtxo) {
     return (`\n    Amount: ${witnessUtxo.amount}\n    Script: ${toHex(witnessUtxo.scriptPubKey)}`);
 }
 
-function printBip32Derivations(psbt, inout, prefix, index) {
-    const funcName = `get${inout.capitalize()}Bip32Derivation`;
-    const mapName = `${inout}Maps`;
+function printBip32Derivations(psbt, in_out, prefix, index) {
+    const funcName = `get${in_out.capitalize()}Bip32Derivation`;
+    const mapName = `${in_out}Maps`;
     let firstDerivation = true;
 
     const map = psbt[mapName][index];

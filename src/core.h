@@ -30,10 +30,10 @@ typedef enum {
 } tx_type_t;
 
 typedef struct {
-    // Global informations
+    // Global information
     tx_type_t type;
 
-    // Stake informations
+    // Stake information
     uint16_t chain_id;
     uint8_t delegator[20];
     uint8_t validator[20];
@@ -41,14 +41,14 @@ typedef struct {
     uint8_t fee;
     uint32_t locktime;
 
-    // Unstake informations
+    // Unstake information
     uint64_t unlock_amount;
     uint32_t n_core_dao_inputs;
     uint8_t  core_inputs[64];
 } core_dao_tx_info_t;
 
 /***
- * Parse the staking informations from an OP_RETURN output script
+ * Parse the staking information from an OP_RETURN output script
  * @param payload The payload of the OP_RETURN output script minus the OP_RETURN opcode and the data length
  * @param payload_len The length of the payload (should be 80 bytes)
  * @param info The parsed staking information
