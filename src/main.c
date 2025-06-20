@@ -14,12 +14,12 @@
 #include "debug.h"
 #include "core.h"
 
-#define FLAG_OP_RETURN_FOUND 0x01
+#define FLAG_OP_RETURN_FOUND      0x01
 #define FLAG_LOCKING_OUTPUT_FOUND 0x01 << 1
-#define FLAG_CHANGE_OUTPUT_FOUND 0x01 << 2
+#define FLAG_CHANGE_OUTPUT_FOUND  0x01 << 2
 
-#define SCRIPT_PUBKEY_BUFFER_LEN 83 // Max length for OP_RETURN scriptPubKey
-#define P2TR_SCRIPTPUBKEY_LEN 34
+#define SCRIPT_PUBKEY_BUFFER_LEN 83  // Max length for OP_RETURN scriptPubKey
+#define P2TR_SCRIPTPUBKEY_LEN    34
 
 static core_dao_tx_info_t core_tx_info;
 
@@ -29,16 +29,14 @@ bool custom_apdu_handler(dispatcher_context_t *dc, const command_t *cmd) {
     return false;
 }
 
-static bool get_output_amount(
-    dispatcher_context_t *dc,
-    merkleized_map_commitment_t *map,
-    uint64_t *amount
-) {
+static bool get_output_amount(dispatcher_context_t *dc,
+                              merkleized_map_commitment_t *map,
+                              uint64_t *amount) {
     uint8_t raw_amount[8];
     if (8 != call_get_merkleized_map_value(dc,
                                            map,
-                                           (uint8_t[]){PSBT_OUT_AMOUNT},
-                                           sizeof((uint8_t[]){PSBT_OUT_AMOUNT}),
+                                           (uint8_t[]) {PSBT_OUT_AMOUNT},
+                                           sizeof((uint8_t[]) {PSBT_OUT_AMOUNT}),
                                            raw_amount,
                                            sizeof(raw_amount))) {
         SEND_SW(dc, SW_INCORRECT_DATA);
@@ -50,30 +48,28 @@ static bool get_output_amount(
 
 static uint64_t read_amount(const uint8_t *buffer) {
     uint64_t amount = 0;
-    amount |= (uint64_t)buffer[0] << 0;
-    amount |= (uint64_t)buffer[1] << 8;
-    amount |= (uint64_t)buffer[2] << 16;
-    amount |= (uint64_t)buffer[3] << 24;
-    amount |= (uint64_t)buffer[4] << 32;
-    amount |= (uint64_t)buffer[5] << 40;
-    amount |= (uint64_t)buffer[6] << 48;
-    amount |= (uint64_t)buffer[7] << 56;
+    amount |= (uint64_t) buffer[0] << 0;
+    amount |= (uint64_t) buffer[1] << 8;
+    amount |= (uint64_t) buffer[2] << 16;
+    amount |= (uint64_t) buffer[3] << 24;
+    amount |= (uint64_t) buffer[4] << 32;
+    amount |= (uint64_t) buffer[5] << 40;
+    amount |= (uint64_t) buffer[6] << 48;
+    amount |= (uint64_t) buffer[7] << 56;
     return amount;
 }
 
-static bool get_utxo_witness(
-    dispatcher_context_t *dc,
-    merkleized_map_commitment_t *map,
-    uint64_t *amount,
-    uint8_t script_pubkey[static SCRIPT_HASH_LEN]
-) {
-    uint8_t utxo[43]; // 8 bytes amount; 1 byte length; 34 bytes P2TR Script
+static bool get_utxo_witness(dispatcher_context_t *dc,
+                             merkleized_map_commitment_t *map,
+                             uint64_t *amount,
+                             uint8_t script_pubkey[static SCRIPT_HASH_LEN]) {
+    uint8_t utxo[43];  // 8 bytes amount; 1 byte length; 34 bytes P2TR Script
     if (sizeof(utxo) != call_get_merkleized_map_value(dc,
-                                           map,
-                                           (uint8_t[]){PSBT_IN_WITNESS_UTXO},
-                                           sizeof((uint8_t[]){PSBT_IN_WITNESS_UTXO}),
-                                           utxo,
-                                           sizeof(utxo))) {
+                                                      map,
+                                                      (uint8_t[]) {PSBT_IN_WITNESS_UTXO},
+                                                      sizeof((uint8_t[]) {PSBT_IN_WITNESS_UTXO}),
+                                                      utxo,
+                                                      sizeof(utxo))) {
         PRINT("Unable to get witness UTXO or invalid witness UTXO\n");
         return false;
     }
@@ -86,19 +82,17 @@ static bool get_utxo_witness(
     return true;
 }
 
-static bool get_script_pubkey(
-    dispatcher_context_t *dc,
-    merkleized_map_commitment_t *map,
-    uint8_t *script_pubkey,
-    size_t script_pubkey_len,
-    int *result_len
-) {
+static bool get_script_pubkey(dispatcher_context_t *dc,
+                              merkleized_map_commitment_t *map,
+                              uint8_t *script_pubkey,
+                              size_t script_pubkey_len,
+                              int *result_len) {
     *result_len = call_get_merkleized_map_value(dc,
-                                            map,
-                                            (uint8_t[]){PSBT_OUT_SCRIPT},
-                                            1,
-                                            script_pubkey,
-                                            script_pubkey_len);
+                                                map,
+                                                (uint8_t[]) {PSBT_OUT_SCRIPT},
+                                                1,
+                                                script_pubkey,
+                                                script_pubkey_len);
     if (*result_len < 0) {
         SEND_SW(dc, SW_INCORRECT_DATA);
         return false;
@@ -106,18 +100,17 @@ static bool get_script_pubkey(
     return true;
 }
 
-static bool get_input_redeem_script(
-    dispatcher_context_t *dc,
-    merkleized_map_commitment_t *map,
-    uint8_t *redeem_script,
-    size_t redeem_script_len
-) {
-    if (REDEEM_SCRIPT_LEN != call_get_merkleized_map_value(dc,
-                                           map,
-                                           (uint8_t[]){PSBT_IN_WITNESS_SCRIPT},
-                                           sizeof((uint8_t[]){PSBT_IN_WITNESS_SCRIPT}),
-                                           redeem_script,
-                                           redeem_script_len)) {
+static bool get_input_redeem_script(dispatcher_context_t *dc,
+                                    merkleized_map_commitment_t *map,
+                                    uint8_t *redeem_script,
+                                    size_t redeem_script_len) {
+    if (REDEEM_SCRIPT_LEN !=
+        call_get_merkleized_map_value(dc,
+                                      map,
+                                      (uint8_t[]) {PSBT_IN_WITNESS_SCRIPT},
+                                      sizeof((uint8_t[]) {PSBT_IN_WITNESS_SCRIPT}),
+                                      redeem_script,
+                                      redeem_script_len)) {
         SEND_SW(dc, SW_INCORRECT_DATA);
         return false;
     }
@@ -143,11 +136,11 @@ static void input_keys_callback(dispatcher_context_t *dc,
         buffer_read_u8(data, &key_type);
         if (!callback_data->found && key_type == PSBT_IN_BIP32_DERIVATION) {
             int der_len = extract_bip32_derivation(dc,
-                                               key_type,
-                                               map_commitment->values_root,
-                                               map_commitment->size,
-                                               index,
-                                               fpt_der);
+                                                   key_type,
+                                                   map_commitment->values_root,
+                                                   map_commitment->size,
+                                                   index,
+                                                   fpt_der);
 
             if (der_len < 0) {
                 PRINT("Failed to read BIP32_DERIVATION\n");
@@ -167,15 +160,12 @@ static void input_keys_callback(dispatcher_context_t *dc,
             }
         }
     }
-
 }
 
-static tx_type_t validate_lock_transaction(
-    dispatcher_context_t *dc,
-    sign_psbt_state_t *st,
-    const uint8_t internal_outputs[64],
-    core_dao_tx_info_t *info
-) {
+static tx_type_t validate_lock_transaction(dispatcher_context_t *dc,
+                                           sign_psbt_state_t *st,
+                                           const uint8_t internal_outputs[64],
+                                           core_dao_tx_info_t *info) {
     int find = 0;
     merkleized_map_commitment_t external_output_map;
     uint8_t script_pubkey[SCRIPT_PUBKEY_BUFFER_LEN];
@@ -183,11 +173,11 @@ static tx_type_t validate_lock_transaction(
     uint8_t redeem_script[REDEEM_SCRIPT_LEN];
     size_t redeem_script_len = REDEEM_SCRIPT_LEN;
     uint8_t lock_script_pubkey[LOCK_SCRIPT_LEN];
-    input_bip32_path_t input_bip32_path = { 0 };
+    input_bip32_path_t input_bip32_path = {0};
 
     // Iterate through all inputs
     for (unsigned int cur_input_index = 0; cur_input_index < st->n_inputs; cur_input_index++) {
-        input_info_t input = { 0 };
+        input_info_t input = {0};
 
         int res = call_get_merkleized_map_with_callback(
             dc,
@@ -208,7 +198,8 @@ static tx_type_t validate_lock_transaction(
     // Iterate through all outputs
     for (unsigned int i = 0; i < st->n_outputs; i++) {
         PRINT("Checking output %d\n", i);
-        if (call_get_merkleized_map(dc, st->outputs_root, st->n_outputs, i, &external_output_map) < 0) {
+        if (call_get_merkleized_map(dc, st->outputs_root, st->n_outputs, i, &external_output_map) <
+            0) {
             PRINT("Failed to get input\n");
             return TYPE_TX_INVALID;
         }
@@ -218,28 +209,30 @@ static tx_type_t validate_lock_transaction(
             return TYPE_TX_INVALID;
         }
         // Get output scriptPubKey
-        if (!get_script_pubkey(dc, &external_output_map, script_pubkey,
-                               sizeof(script_pubkey), &script_pubkey_len)) {
+        if (!get_script_pubkey(dc,
+                               &external_output_map,
+                               script_pubkey,
+                               sizeof(script_pubkey),
+                               &script_pubkey_len)) {
             PRINT("Failed to get scriptPubKey for output %d\n", i);
             return TYPE_TX_INVALID;
         }
         if (script_pubkey[0] == OP_RETURN) {
-            if (!parse_staking_information(script_pubkey + 3, 
+            if (!parse_staking_information(script_pubkey + 3,
                                            script_pubkey_len - 3,
                                            info,
-                                           redeem_script) || amount != 0) {
+                                           redeem_script) ||
+                amount != 0) {
                 PRINT_HEX(script_pubkey, script_pubkey_len, "OP_RETURN scriptPubKey: ");
                 PRINT("Invalid OP_RETURN output or amount is not at zero\n");
                 SEND_SW(dc, SW_INCORRECT_DATA);
                 return TYPE_TX_INVALID;
             }
             find |= FLAG_OP_RETURN_FOUND;
-        } else if (input_bip32_path.found && check_if_change_output(
-            input_bip32_path.bip32_der,
-            input_bip32_path.bip32_der_len,
-            script_pubkey,
-            script_pubkey_len
-        )) {
+        } else if (input_bip32_path.found && check_if_change_output(input_bip32_path.bip32_der,
+                                                                    input_bip32_path.bip32_der_len,
+                                                                    script_pubkey,
+                                                                    script_pubkey_len)) {
             PRINT("Found change output %d\n", i);
             st->outputs.change_total_amount += amount;
             find |= FLAG_CHANGE_OUTPUT_FOUND;
@@ -256,7 +249,7 @@ static tx_type_t validate_lock_transaction(
             find |= FLAG_LOCKING_OUTPUT_FOUND;
         }
     }
-    
+
     // If a lock output and a valid op return was found the tx is a staking tx
     if (find & FLAG_OP_RETURN_FOUND && find & FLAG_LOCKING_OUTPUT_FOUND) {
         PRINT("Staking transaction\n");
@@ -273,7 +266,7 @@ static tx_type_t validate_lock_transaction(
     }
 
     info->lock_amount = st->internal_inputs_total_amount - st->outputs.change_total_amount;
-    
+
     PRINT_HEX(info->delegator, 20, "Delegator: ");
     PRINT_HEX(info->validator, 20, "Validator: ");
     PRINT("Amount: %llu\n", info->lock_amount);
@@ -282,7 +275,7 @@ static tx_type_t validate_lock_transaction(
     PRINT("Fee: %d\n", info->fee);
     PRINT_HEX(redeem_script, redeem_script_len, "Redeem script: ");
     PRINT_HEX(lock_script_pubkey, LOCK_SCRIPT_LEN, "Lock scriptPubKey: ");
-    
+
     // Verify the redeem script contains the expected public key
     if (!validate_redeem_script(redeem_script)) {
         PRINT("Invalid redeem script in OP_RETURN output\n");
@@ -300,12 +293,10 @@ static tx_type_t validate_lock_transaction(
     return info->type;
 }
 
-static tx_type_t validate_unlock_transaction(
-    dispatcher_context_t *dc,
-    sign_psbt_state_t *st,
-    const uint8_t internal_inputs[64],
-    core_dao_tx_info_t *info
-) {
+static tx_type_t validate_unlock_transaction(dispatcher_context_t *dc,
+                                             sign_psbt_state_t *st,
+                                             const uint8_t internal_inputs[64],
+                                             core_dao_tx_info_t *info) {
     merkleized_map_commitment_t external_input_map;
     // Count the number of CoreDAO inputs
     info->n_core_dao_inputs = 0;
@@ -316,7 +307,8 @@ static tx_type_t validate_unlock_transaction(
             // Verify if the input is a CoreDAO input (fail otherwise)
             // Get commitment to the i-th input's map
             PRINT("Getting input %d\n", i);
-            if (call_get_merkleized_map(dc, st->inputs_root, st->n_inputs, i, &external_input_map) < 0) {
+            if (call_get_merkleized_map(dc, st->inputs_root, st->n_inputs, i, &external_input_map) <
+                0) {
                 PRINT("Failed to get input &d\n", i);
                 return TYPE_TX_INVALID;
             }
@@ -329,7 +321,10 @@ static tx_type_t validate_unlock_transaction(
                 return TYPE_TX_INVALID;
             }
 
-            if (!get_input_redeem_script(dc, &external_input_map, redeem_script, REDEEM_SCRIPT_LEN)) {
+            if (!get_input_redeem_script(dc,
+                                         &external_input_map,
+                                         redeem_script,
+                                         REDEEM_SCRIPT_LEN)) {
                 return TYPE_TX_INVALID;
             }
 
@@ -342,7 +337,7 @@ static tx_type_t validate_unlock_transaction(
             info->type |= TYPE_TX_UNLOCK;
             info->n_core_dao_inputs += 1;
             info->unlock_amount += amount;
-            bitvector_set(info->core_inputs, i, 1); // Mark the input as a CoreDAO input
+            bitvector_set(info->core_inputs, i, 1);  // Mark the input as a CoreDAO input
         } else {
             PRINT("Internal input %d\n", i);
         }
@@ -353,12 +348,11 @@ static tx_type_t validate_unlock_transaction(
     return info->type;
 }
 
-static tx_type_t validate_transaction(
-    dispatcher_context_t *dc,
-    sign_psbt_state_t *st,
-    const uint8_t internal_inputs[64],
-    const uint8_t internal_outputs[64],
-    core_dao_tx_info_t *info) {
+static tx_type_t validate_transaction(dispatcher_context_t *dc,
+                                      sign_psbt_state_t *st,
+                                      const uint8_t internal_inputs[64],
+                                      const uint8_t internal_outputs[64],
+                                      core_dao_tx_info_t *info) {
     // This application implements the following rules:
     // - If a transaction contains a OP_RETURN output, It must be a valid CoreDAO output
     // - If a transaction contains a OP_RETURN output, It must have a locking output
@@ -377,17 +371,16 @@ static tx_type_t validate_transaction(
 }
 
 // hooking into a weak function
-bool validate_and_display_transaction(
-    dispatcher_context_t *dc,
-    sign_psbt_state_t *st,
-    const uint8_t internal_inputs[64],
-    const uint8_t internal_outputs[64]) {
+bool validate_and_display_transaction(dispatcher_context_t *dc,
+                                      sign_psbt_state_t *st,
+                                      const uint8_t internal_inputs[64],
+                                      const uint8_t internal_outputs[64]) {
     PRINT("Validating and displaying transaction\n");
-
 
     explicit_bzero(&core_tx_info, sizeof(core_tx_info));
 
-    tx_type_t tx_type = validate_transaction(dc, st, internal_inputs, internal_outputs, &core_tx_info);
+    tx_type_t tx_type =
+        validate_transaction(dc, st, internal_inputs, internal_outputs, &core_tx_info);
 
     if ((tx_type & TYPE_TX_INVALID) == TYPE_TX_INVALID) {
         PRINT("Send invalid status\n");
@@ -395,9 +388,9 @@ bool validate_and_display_transaction(
         return false;
     }
 
-    // the amount spent from the wallet policy (or negative if the it received more funds than it spent)
-    int64_t internal_value = st->internal_inputs_total_amount + 
-                             core_tx_info.unlock_amount -
+    // the amount spent from the wallet policy (or negative if the it received more funds than it
+    // spent)
+    int64_t internal_value = st->internal_inputs_total_amount + core_tx_info.unlock_amount -
                              st->outputs.change_total_amount;
 
     uint64_t fee = st->inputs_total_amount - st->outputs.total_amount;
@@ -453,28 +446,25 @@ bool sign_custom_inputs(
             script_pubkey[0] = 0x00;
             script_pubkey[1] = 0x20;
             PRINT_HEX(script_pubkey, SCRIPT_HASH_LEN + 2, "Redeem script: ");
-            if (!compute_sighash_segwitv0(
-                dc,
-                st,
-                tx_hashes,
-                &input_map,
-                i,
-                script_pubkey,
-                SCRIPT_HASH_LEN + 2,
-                SIGHASH_DEFAULT,
-                sighash
-            )) {
+            if (!compute_sighash_segwitv0(dc,
+                                          st,
+                                          tx_hashes,
+                                          &input_map,
+                                          i,
+                                          script_pubkey,
+                                          SCRIPT_HASH_LEN + 2,
+                                          SIGHASH_DEFAULT,
+                                          sighash)) {
                 PRINT("Failed to compute the sighash\n");
                 return false;
             }
-            if (!sign_sighash_ecdsa_and_yield(
-                dc,
-                st,
-                i,
-                path,
-                CORE_DERIVATION_PATH_LEN,
-                SIGHASH_DEFAULT,
-                sighash)) {
+            if (!sign_sighash_ecdsa_and_yield(dc,
+                                              st,
+                                              i,
+                                              path,
+                                              CORE_DERIVATION_PATH_LEN,
+                                              SIGHASH_DEFAULT,
+                                              sighash)) {
                 PRINT("Signing failed\n");
                 return false;
             }
