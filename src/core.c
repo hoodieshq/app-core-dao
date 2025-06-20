@@ -18,7 +18,26 @@
 
 #define SUPPORTED_VERSION 1
 
+static bool get_core_compressed_pubkey(const uint32_t bip32_path[],
+                                uint8_t bip32_path_len,
+                                uint8_t out_pubkey[static 33]
+) {
+    uint8_t chaincode[32];
+    
+    return crypto_get_compressed_pubkey_at_path(bip32_path, bip32_path_len, out_pubkey, chaincode);
+}
 
+static bool get_core_pubkey_hash160(const uint32_t bip32_path[],
+                                    uint8_t bip32_path_len,
+                                    uint8_t out_hash160[static 20]
+) {
+    uint8_t pubkey[33];
+    if (!get_core_compressed_pubkey(bip32_path, bip32_path_len, pubkey)) {
+        return false;
+    }
+    crypto_hash160(pubkey, 33, out_hash160);
+    return true;
+}
 
 static const char *SAT_PLUS = "SAT+";
 
@@ -79,6 +98,7 @@ bool parse_staking_information(
 
 bool get_core_redeem_script(uint32_t locktime, uint8_t redeem_script[static REDEEM_SCRIPT_LEN]) {
     int offset = 0;
+    const uint32_t path[] = CORE_DERIVATION_PATH;
 
     redeem_script[offset++] = OP_PUSHBYTES_4;
     write_u32_le(redeem_script, offset, locktime);
@@ -88,7 +108,7 @@ bool get_core_redeem_script(uint32_t locktime, uint8_t redeem_script[static REDE
     redeem_script[offset++] = OP_DUP;
     redeem_script[offset++] = OP_HASH160;
     redeem_script[offset++] = OP_PUSHBYTES_20; // Push 20 bytes
-    if (!get_core_pubkey_hash160(redeem_script + offset)) {
+    if (!get_core_pubkey_hash160(path, CORE_DERIVATION_PATH_LEN, redeem_script + offset)) {
         return false;
     }
     offset += 20;
@@ -140,20 +160,30 @@ bool validate_lock_script_pubkey(
     return memcmp(lock_script_pubkey + 2, script_hash, 32) == 0;
 }
 
-bool get_core_compressed_pubkey(uint8_t pubkey[static 33]) {
-    uint32_t path[] = CORE_DERIVATION_PATH;
-    uint8_t chaincode[32];
-    
-    return crypto_get_compressed_pubkey_at_path(path, CORE_DERIVATION_PATH_LEN, pubkey, chaincode);
-}
+bool check_if_change_output(const uint32_t bip32_path[],
+                        uint8_t bip32_path_len,
+                        const uint8_t *script,
+                        int32_t script_len
+) {
+    uint8_t hash[20];
 
-bool get_core_pubkey_hash160(uint8_t hash160[static 20]) {
-    uint8_t pubkey[33];
-    if (!get_core_compressed_pubkey(pubkey)) {
+    if (script_len != P2WPKH_SCRIPT_LEN) {
         return false;
     }
-    crypto_hash160(pubkey, 33, hash160);
-    return true;
+
+    if (script[0] != OP_0 || script[1] != OP_PUSHBYTES_20) {
+        return false;
+    }
+
+    if (!get_core_pubkey_hash160(
+        bip32_path,
+        bip32_path_len,
+        hash
+    )) {
+        return false;
+    }
+
+    return memcmp(hash, script + 2, HASH160_LEN) == 0;
 }
 
 void buffer_to_hex(const uint8_t *buffer,

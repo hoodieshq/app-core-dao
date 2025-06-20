@@ -12,6 +12,9 @@
 #define CHAIN_ID_TESTNET 1115
 #define CHAIN_ID_TESTNET2 1114
 
+#define P2WPKH_SCRIPT_LEN 22 // OP_0 + OP_PUSHBYTES_20 + 20 bytes of hash
+#define HASH160_LEN 20
+
 #define H 0x80000000
 
 // Useful OP_CODES
@@ -71,10 +74,10 @@ bool validate_lock_script_pubkey(
     uint8_t redeem_script[static REDEEM_SCRIPT_LEN]
 );
 
-bool get_core_compressed_pubkey(uint8_t pubkey[static 33]);
-
-bool get_core_pubkey_hash160(uint8_t hash160[static 20]);
-
-bool get_core_redeem_script( uint32_t locktime, uint8_t redeem_script[static REDEEM_SCRIPT_LEN]);
+bool check_if_change_output(const uint32_t bip32_path[],
+                        uint8_t bip32_path_len,
+                        const uint8_t *script,
+                        int32_t script_len
+);
 
 void buffer_to_hex(const uint8_t *buffer, size_t buffer_len, char *out, size_t out_len);

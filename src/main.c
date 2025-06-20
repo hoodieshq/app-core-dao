@@ -8,6 +8,7 @@
 #include "../bitcoin_app_base/src/handler/sign_psbt.h"
 #include "../bitcoin_app_base/src/handler/sign_psbt/txhashes.h"
 #include "../bitcoin_app_base/src/crypto.h"
+#include "../bitcoin_app_base/src/handler/sign_psbt/extract_bip32_derivation.h"
 
 #include "display.h"
 #include "debug.h"
@@ -18,7 +19,7 @@
 #define FLAG_CHANGE_OUTPUT_FOUND 0x01 << 2
 
 #define SCRIPT_PUBKEY_BUFFER_LEN 83 // Max length for OP_RETURN scriptPubKey
-# define P2TR_SCRIPTPUBKEY_LEN 34
+#define P2TR_SCRIPTPUBKEY_LEN 34
 
 static core_dao_tx_info_t core_tx_info;
 
@@ -123,6 +124,52 @@ static bool get_input_redeem_script(
     return true;
 }
 
+typedef struct {
+    bool found;
+    size_t bip32_der_len;
+    uint32_t bip32_der[MAX_BIP32_PATH_STEPS];
+} input_bip32_path_t;
+
+static void input_keys_callback(dispatcher_context_t *dc,
+                                input_bip32_path_t *callback_data,
+                                const merkleized_map_commitment_t *map_commitment,
+                                int index,
+                                buffer_t *data) {
+    size_t data_len = data->size - data->offset;
+    uint32_t fpt_der[1 + MAX_BIP32_PATH_STEPS];
+
+    if (data_len >= 1) {
+        uint8_t key_type;
+        buffer_read_u8(data, &key_type);
+        if (!callback_data->found && key_type == PSBT_IN_BIP32_DERIVATION) {
+            int der_len = extract_bip32_derivation(dc,
+                                               key_type,
+                                               map_commitment->values_root,
+                                               map_commitment->size,
+                                               index,
+                                               fpt_der);
+
+            if (der_len < 0) {
+                PRINT("Failed to read BIP32_DERIVATION\n");
+                return;
+            }
+
+            if (der_len < 2 || der_len > MAX_BIP32_PATH_STEPS) {
+                PRINT("BIP32_DERIVATION path too long\n");
+                return;
+            }
+
+            callback_data->found = true;
+            callback_data->bip32_der_len = der_len;
+            for (int i = 0; i < der_len; i++) {
+                // Skip the fingerprint
+                callback_data->bip32_der[i] = fpt_der[i + 1];
+            }
+        }
+    }
+
+}
+
 static tx_type_t validate_lock_transaction(
     dispatcher_context_t *dc,
     sign_psbt_state_t *st,
@@ -136,6 +183,27 @@ static tx_type_t validate_lock_transaction(
     uint8_t redeem_script[REDEEM_SCRIPT_LEN];
     size_t redeem_script_len = REDEEM_SCRIPT_LEN;
     uint8_t lock_script_pubkey[LOCK_SCRIPT_LEN];
+    input_bip32_path_t input_bip32_path = { 0 };
+
+    // Iterate through all inputs
+    for (unsigned int cur_input_index = 0; cur_input_index < st->n_inputs; cur_input_index++) {
+        input_info_t input = { 0 };
+
+        int res = call_get_merkleized_map_with_callback(
+            dc,
+            (void *) &input_bip32_path,
+            st->inputs_root,
+            st->n_inputs,
+            cur_input_index,
+            (merkle_tree_elements_callback_t) input_keys_callback,
+            &input.in_out.map);
+
+        if (res < 0) {
+            PRINT("Failed to process input map\n");
+            SEND_SW(dc, SW_INCORRECT_DATA);
+            return false;
+        }
+    }
 
     // Iterate through all outputs
     for (unsigned int i = 0; i < st->n_outputs; i++) {
@@ -166,6 +234,15 @@ static tx_type_t validate_lock_transaction(
                 return TYPE_TX_INVALID;
             }
             find |= FLAG_OP_RETURN_FOUND;
+        } else if (input_bip32_path.found && check_if_change_output(
+            input_bip32_path.bip32_der,
+            input_bip32_path.bip32_der_len,
+            script_pubkey,
+            script_pubkey_len
+        )) {
+            PRINT("Found change output %d\n", i);
+            st->outputs.change_total_amount += amount;
+            find |= FLAG_CHANGE_OUTPUT_FOUND;
         } else if (bitvector_get(internal_outputs, i) == 1) {
             // If the output is internal, consider it to be the change
             find |= FLAG_CHANGE_OUTPUT_FOUND;
@@ -200,6 +277,8 @@ static tx_type_t validate_lock_transaction(
     PRINT_HEX(info->delegator, 20, "Delegator: ");
     PRINT_HEX(info->validator, 20, "Validator: ");
     PRINT("Amount: %llu\n", info->lock_amount);
+    PRINT("Total Amount: %llu\n", st->internal_inputs_total_amount);
+    PRINT("Change: %llu\n", st->outputs.change_total_amount);
     PRINT("Fee: %d\n", info->fee);
     PRINT_HEX(redeem_script, redeem_script_len, "Redeem script: ");
     PRINT_HEX(lock_script_pubkey, LOCK_SCRIPT_LEN, "Lock scriptPubKey: ");
