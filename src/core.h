@@ -22,7 +22,8 @@
 #define OP_PUSHBYTES_20 20
 #define OP_PUSHBYTES_32 32
 
-#define CORE_DERIVATION_PATH     {84 | H, 1 | H, 0 | H, 0, 0}
+#define CORE_DERIVATION_PATH \
+    { 84 | H, 1 | H, 0 | H, 0, 0 }
 #define CORE_DERIVATION_PATH_LEN 5
 
 typedef enum {

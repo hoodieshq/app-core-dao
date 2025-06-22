@@ -35,8 +35,8 @@ static bool get_output_amount(dispatcher_context_t *dc,
     uint8_t raw_amount[8];
     if (8 != call_get_merkleized_map_value(dc,
                                            map,
-                                           (uint8_t[]) {PSBT_OUT_AMOUNT},
-                                           sizeof((uint8_t[]) {PSBT_OUT_AMOUNT}),
+                                           (uint8_t[]){PSBT_OUT_AMOUNT},
+                                           sizeof((uint8_t[]){PSBT_OUT_AMOUNT}),
                                            raw_amount,
                                            sizeof(raw_amount))) {
         SEND_SW(dc, SW_INCORRECT_DATA);
@@ -66,8 +66,8 @@ static bool get_utxo_witness(dispatcher_context_t *dc,
     uint8_t utxo[43];  // 8 bytes amount; 1 byte length; 34 bytes P2TR Script
     if (sizeof(utxo) != call_get_merkleized_map_value(dc,
                                                       map,
-                                                      (uint8_t[]) {PSBT_IN_WITNESS_UTXO},
-                                                      sizeof((uint8_t[]) {PSBT_IN_WITNESS_UTXO}),
+                                                      (uint8_t[]){PSBT_IN_WITNESS_UTXO},
+                                                      sizeof((uint8_t[]){PSBT_IN_WITNESS_UTXO}),
                                                       utxo,
                                                       sizeof(utxo))) {
         PRINT("Unable to get witness UTXO or invalid witness UTXO\n");
@@ -89,7 +89,7 @@ static bool get_script_pubkey(dispatcher_context_t *dc,
                               int *result_len) {
     *result_len = call_get_merkleized_map_value(dc,
                                                 map,
-                                                (uint8_t[]) {PSBT_OUT_SCRIPT},
+                                                (uint8_t[]){PSBT_OUT_SCRIPT},
                                                 1,
                                                 script_pubkey,
                                                 script_pubkey_len);
@@ -107,8 +107,8 @@ static bool get_input_redeem_script(dispatcher_context_t *dc,
     if (REDEEM_SCRIPT_LEN !=
         call_get_merkleized_map_value(dc,
                                       map,
-                                      (uint8_t[]) {PSBT_IN_WITNESS_SCRIPT},
-                                      sizeof((uint8_t[]) {PSBT_IN_WITNESS_SCRIPT}),
+                                      (uint8_t[]){PSBT_IN_WITNESS_SCRIPT},
+                                      sizeof((uint8_t[]){PSBT_IN_WITNESS_SCRIPT}),
                                       redeem_script,
                                       redeem_script_len)) {
         SEND_SW(dc, SW_INCORRECT_DATA);

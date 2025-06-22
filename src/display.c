@@ -75,47 +75,47 @@ bool display_transaction(dispatcher_context_t *dc,
     int n_pairs = 0;
 
     if (info->type & TYPE_TX_LOCK) {
-        pairs[n_pairs++] = (nbgl_layoutTagValue_t) {
+        pairs[n_pairs++] = (nbgl_layoutTagValue_t){
             .item = "Stake amount",
             .value = value_str,
         };
     }
 
     if (info->type & TYPE_TX_UNLOCK) {
-        pairs[n_pairs++] = (nbgl_layoutTagValue_t) {
+        pairs[n_pairs++] = (nbgl_layoutTagValue_t){
             .item = "Unstake amount",
             .value = unstake_value_str,
         };
     }
 
     if (info->type & TYPE_TX_LOCK) {
-        pairs[n_pairs++] = (nbgl_layoutTagValue_t) {
+        pairs[n_pairs++] = (nbgl_layoutTagValue_t){
             .item = "Delegator",
             .value = delegator_str,
         };
 
-        pairs[n_pairs++] = (nbgl_layoutTagValue_t) {
+        pairs[n_pairs++] = (nbgl_layoutTagValue_t){
             .item = "Validator",
             .value = validator_str,
             .forcePageStart = true,
         };
 
-        pairs[n_pairs++] = (nbgl_layoutTagValue_t) {
+        pairs[n_pairs++] = (nbgl_layoutTagValue_t){
             .item = "Locktime (UTC)",
             .value = locktime_str,
         };
 
-        pairs[n_pairs++] = (nbgl_layoutTagValue_t) {.item = "CORE fee", .value = core_fee_str};
+        pairs[n_pairs++] = (nbgl_layoutTagValue_t){.item = "CORE fee", .value = core_fee_str};
     }
 
-    pairs[n_pairs++] = (nbgl_layoutTagValue_t) {
+    pairs[n_pairs++] = (nbgl_layoutTagValue_t){
         .item = "Fees",
         .value = fee_str,
         .forcePageStart = info->type != TYPE_TX_UNLOCK,
     };
 
     if (info->chain_id != CHAID_ID_MAINNET) {
-        pairs[n_pairs++] = (nbgl_layoutTagValue_t) {
+        pairs[n_pairs++] = (nbgl_layoutTagValue_t){
             .item = "Network",
             .value = chain_id,
         };
