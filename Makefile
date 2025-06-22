@@ -30,17 +30,13 @@ APPCOPYRIGHT="(c) 2025 Ledger"
 
 VARIANT_VALUES = core_dao core_dao_testnet
 
-# Application source files
-# There is no additional sources for bitcoin
-#APP_SOURCE_PATH += src/
-
 # simplify for tests
 ifndef COIN
 COIN=core_dao_testnet
 endif
 
 # Enabling DEBUG flag will enable PRINTF and disable optimizations
-DEBUG = 10
+#DEBUG = 10
 
 APP_DESCRIPTION ="This app enables to\nstake bitcoin\non CoreDAO."
 

@@ -1,5 +1,3 @@
-#ifdef HAVE_NBGL
-
 #include "display.h"
 
 #include "../bitcoin_app_base/src/ui/display.h"
@@ -130,7 +128,7 @@ bool display_transaction(dispatcher_context_t *dc,
 
     nbgl_useCaseReview(TYPE_TRANSACTION,
                        &pairList,
-                       &C_App_64px,
+                       &ICON_APP_HOME,
                        review_title,
                        NULL,
                        sign_title,
@@ -145,5 +143,3 @@ bool display_transaction(dispatcher_context_t *dc,
 
     return true;
 }
-
-#endif  // HAVE_NBGL
