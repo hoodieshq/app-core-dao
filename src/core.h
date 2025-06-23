@@ -78,3 +78,5 @@ bool check_if_change_output(const uint32_t bip32_path[],
                             int32_t script_len);
 
 void buffer_to_hex(const uint8_t *buffer, size_t buffer_len, char *out, size_t out_len);
+
+void format_address(const uint8_t *buffer, size_t buffer_len, char *out, size_t out_len);

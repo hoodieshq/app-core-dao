@@ -36,16 +36,16 @@ bool display_transaction(dispatcher_context_t *dc,
     char value_str[32] = {0};
     char fee_str[32] = {0};
     char unstake_value_str[32] = {0};
-    char delegator_str[41] = {0};
-    char validator_str[41] = {0};
+    char delegator_str[43] = {0};
+    char validator_str[43] = {0};
     char locktime_str[DATETIME_STR_LEN] = {0};
     char core_fee_str[4] = {0};
     uint64_t value_spent_abs = value_spent < 0 ? -value_spent : value_spent;
     format_sats_amount(COIN_COINID_SHORT, value_spent_abs, value_str);
     format_sats_amount(COIN_COINID_SHORT, fee, fee_str);
     format_sats_amount(COIN_COINID_SHORT, info->unlock_amount, unstake_value_str);
-    buffer_to_hex(info->delegator, 20, delegator_str, 41);
-    buffer_to_hex(info->validator, 20, validator_str, 41);
+    format_address(info->delegator, 20, delegator_str, sizeof(delegator_str));
+    format_address(info->validator, 20, validator_str, sizeof(validator_str));
     timestamp_to_string(info->locktime, locktime_str);
     snprintf(core_fee_str, 4, "%d", info->fee);
 

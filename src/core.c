@@ -191,3 +191,14 @@ void buffer_to_hex(const uint8_t *buffer, size_t buffer_len, char *out, size_t o
     // Always terminate the string
     out[i * 2] = '\0';
 }
+
+void format_address(const uint8_t *buffer, size_t buffer_len, char *out, size_t out_len) {
+    // Add "0x" prefix
+    out[0] = '0';
+    out[1] = 'x';
+
+    out += 2;
+    out_len -= 2;
+
+    buffer_to_hex(buffer, buffer_len, out, out_len);
+}
