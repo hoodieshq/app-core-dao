@@ -56,7 +56,14 @@ bool display_transaction(dispatcher_context_t *dc,
     } else if (info->chain_id == CHAIN_ID_TESTNET2) {
         chain_id = (char *) "Testnet2";
     } else {
-        chain_id = (char *) "Unknown";
+        // Fallback to compile time defined chain ID
+#ifdef CORE_DAO_MAINNET
+        chain_id = (char *) "Mainnet";
+        info->chain_id = CHAID_ID_MAINNET;
+#else
+        chain_id = (char *) "Testnet";
+        info->chain_id = CHAIN_ID_TESTNET;
+#endif
     }
 
     if (info->type & TYPE_TX_LOCK && info->type & TYPE_TX_UNLOCK) {
