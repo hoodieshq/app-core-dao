@@ -388,12 +388,12 @@ bool validate_and_display_transaction(dispatcher_context_t *dc,
         return false;
     }
 
-    // the amount spent from the wallet policy (or negative if the it received more funds than it
+    uint64_t fee = st->inputs_total_amount - st->outputs.total_amount;
+
+    // The amount spent from the wallet policy (or negative if the it received more funds than it
     // spent)
     int64_t internal_value = st->internal_inputs_total_amount + core_tx_info.unlock_amount -
-                             st->outputs.change_total_amount;
-
-    uint64_t fee = st->inputs_total_amount - st->outputs.total_amount;
+                             st->outputs.change_total_amount - fee;
 
     if (!display_transaction(dc, internal_value, fee, &core_tx_info)) {
         return false;
