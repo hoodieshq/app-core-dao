@@ -453,7 +453,7 @@ bool sign_custom_inputs(
                                           i,
                                           script_pubkey,
                                           SCRIPT_HASH_LEN + 2,
-                                          SIGHASH_DEFAULT,
+                                          SIGHASH_ALL,
                                           sighash)) {
                 PRINT("Failed to compute the sighash\n");
                 return false;
@@ -463,7 +463,7 @@ bool sign_custom_inputs(
                                               i,
                                               path,
                                               CORE_DERIVATION_PATH_LEN,
-                                              SIGHASH_DEFAULT,
+                                              SIGHASH_ALL,
                                               sighash)) {
                 PRINT("Signing failed\n");
                 return false;
