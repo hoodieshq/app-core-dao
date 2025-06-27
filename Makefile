@@ -38,7 +38,7 @@ endif
 # Enabling DEBUG flag will enable PRINTF and disable optimizations
 #DEBUG = 10
 
-APP_DESCRIPTION ="This app enables to\nstake bitcoin\non CoreDAO."
+APP_DESCRIPTION ="This app enables to\nlock BTC\non CoreDAO."
 
 ifeq ($(COIN),core_dao)
 APPNAME ="CoreDAO"
