@@ -171,7 +171,6 @@ static tx_type_t validate_lock_transaction(dispatcher_context_t *dc,
     uint8_t script_pubkey[SCRIPT_PUBKEY_BUFFER_LEN];
     int script_pubkey_len;
     uint8_t redeem_script[REDEEM_SCRIPT_LEN];
-    size_t redeem_script_len = REDEEM_SCRIPT_LEN;
     uint8_t lock_script_pubkey[LOCK_SCRIPT_LEN];
     input_bip32_path_t input_bip32_path = {0};
 
@@ -191,7 +190,7 @@ static tx_type_t validate_lock_transaction(dispatcher_context_t *dc,
         if (res < 0) {
             PRINT("Failed to process input map\n");
             SEND_SW(dc, SW_INCORRECT_DATA);
-            return false;
+            return TYPE_TX_INVALID;
         }
     }
 
@@ -273,7 +272,7 @@ static tx_type_t validate_lock_transaction(dispatcher_context_t *dc,
     PRINT("Total Amount: %llu\n", st->internal_inputs_total_amount);
     PRINT("Change: %llu\n", st->outputs.change_total_amount);
     PRINT("Fee: %d\n", info->fee);
-    PRINT_HEX(redeem_script, redeem_script_len, "Redeem script: ");
+    PRINT_HEX(redeem_script, REDEEM_SCRIPT_LEN, "Redeem script: ");
     PRINT_HEX(lock_script_pubkey, LOCK_SCRIPT_LEN, "Lock scriptPubKey: ");
 
     // Verify the redeem script contains the expected public key
