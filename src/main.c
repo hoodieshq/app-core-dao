@@ -14,10 +14,6 @@
 #include "debug.h"
 #include "core.h"
 
-#define FLAG_OP_RETURN_FOUND      0x01
-#define FLAG_LOCKING_OUTPUT_FOUND 0x01 << 1
-#define FLAG_CHANGE_OUTPUT_FOUND  0x01 << 2
-
 #define SCRIPT_PUBKEY_BUFFER_LEN 83  // Max length for OP_RETURN scriptPubKey
 #define P2TR_SCRIPTPUBKEY_LEN    34
 
@@ -166,7 +162,6 @@ static tx_type_t validate_lock_transaction(dispatcher_context_t *dc,
                                            sign_psbt_state_t *st,
                                            const uint8_t internal_outputs[64],
                                            core_dao_tx_info_t *info) {
-    int find = 0;
     merkleized_map_commitment_t external_output_map;
     uint8_t script_pubkey[SCRIPT_PUBKEY_BUFFER_LEN];
     int script_pubkey_len;
@@ -227,30 +222,60 @@ static tx_type_t validate_lock_transaction(dispatcher_context_t *dc,
                 SEND_SW(dc, SW_INCORRECT_DATA);
                 return TYPE_TX_INVALID;
             }
-            find |= FLAG_OP_RETURN_FOUND;
+
+            if (info->found_outputs.is_stacking_info_output_found) {
+                PRINT("Found duplicated OP_RETURN output\n");
+                SEND_SW(dc, SW_INCORRECT_DATA);
+                return TYPE_TX_INVALID;
+            }
+
+            info->found_outputs.is_stacking_info_output_found = true;
         } else if (input_bip32_path.found && check_if_change_output(input_bip32_path.bip32_der,
                                                                     input_bip32_path.bip32_der_len,
                                                                     script_pubkey,
                                                                     script_pubkey_len)) {
+            if (info->found_outputs.is_unlock_or_change_output_found) {
+                SEND_SW(dc, SW_INCORRECT_DATA);
+                return TYPE_TX_INVALID;
+            }
+
             PRINT("Found change output %d\n", i);
+            info->found_outputs.is_unlock_or_change_output_found = true;
             st->outputs.change_total_amount += amount;
-            find |= FLAG_CHANGE_OUTPUT_FOUND;
         } else if (bitvector_get(internal_outputs, i) == 1) {
+            // Error only in case duplicate change output is found,
+            // if we already found it during valaidation of unlock TX we should continue
+            if (info->found_outputs.is_unlock_or_change_output_found &&
+                info->found_outputs.unlock_or_change_output_num != i) {
+                PRINT("Found duplicated change output (internal)\n");
+                SEND_SW(dc, SW_INCORRECT_DATA);
+                return TYPE_TX_INVALID;
+            }
+
             // If the output is internal, consider it to be the change
-            find |= FLAG_CHANGE_OUTPUT_FOUND;
+            PRINT("Found change output %d (internal)\n", i);
+            info->found_outputs.is_unlock_or_change_output_found = true;
         } else {
             if (script_pubkey_len != LOCK_SCRIPT_LEN) {
                 PRINT("Invalid scriptPubKey length for locking output (%d)\n", i);
                 SEND_SW(dc, SW_INCORRECT_DATA);
                 return TYPE_TX_INVALID;
             }
+
+            if (info->found_outputs.is_lock_output_found) {
+                PRINT("Found duplicated lock output\n");
+                SEND_SW(dc, SW_INCORRECT_DATA);
+                return TYPE_TX_INVALID;
+            }
+
             memcpy(lock_script_pubkey, script_pubkey, LOCK_SCRIPT_LEN);
-            find |= FLAG_LOCKING_OUTPUT_FOUND;
+            info->found_outputs.is_lock_output_found = true;
         }
     }
 
     // If a lock output and a valid op return was found the tx is a staking tx
-    if (find & FLAG_OP_RETURN_FOUND && find & FLAG_LOCKING_OUTPUT_FOUND) {
+    if (info->found_outputs.is_stacking_info_output_found &&
+        info->found_outputs.is_lock_output_found) {
         PRINT("Staking transaction\n");
         info->type |= TYPE_TX_LOCK;
     } else {
@@ -295,6 +320,7 @@ static tx_type_t validate_lock_transaction(dispatcher_context_t *dc,
 static tx_type_t validate_unlock_transaction(dispatcher_context_t *dc,
                                              sign_psbt_state_t *st,
                                              const uint8_t internal_inputs[64],
+                                             const uint8_t internal_outputs[64],
                                              core_dao_tx_info_t *info) {
     merkleized_map_commitment_t external_input_map;
     // Count the number of CoreDAO inputs
@@ -342,7 +368,46 @@ static tx_type_t validate_unlock_transaction(dispatcher_context_t *dc,
         }
     }
 
+    // Find unlock output
+    for (unsigned int i = 0; i < st->n_outputs; i++) {
+        if (bitvector_get(internal_outputs, i) == 1) {
+            if (info->found_outputs.is_unlock_or_change_output_found) {
+                PRINT("Found duplicated unlock output\n");
+                SEND_SW(dc, SW_INCORRECT_DATA);
+                return TYPE_TX_INVALID;
+            }
+
+            PRINT("Found unlock output %d\n", i);
+            info->found_outputs.is_unlock_or_change_output_found = true;
+            info->found_outputs.unlock_or_change_output_num = i;
+        }
+    }
+
     PRINT("Unlock amount: %llu\n", info->unlock_amount);
+
+    return info->type;
+}
+
+static tx_type_t validate_found_outputs_for_tx_type(core_dao_tx_info_t *info) {
+
+    if (info->type & TYPE_TX_INVALID) {
+        return info->type;
+    }
+
+    if (info->type & TYPE_TX_UNLOCK && info->type & TYPE_TX_LOCK) {
+        if (info->found_outputs.is_unlock_or_change_output_found) {
+            PRINT("Forbidden unlock or change output in lock/unlock TX\n");
+            info->type |= TYPE_TX_INVALID;
+        }
+
+        return info->type;
+
+    } else if (info->type & TYPE_TX_UNLOCK) {
+        if (!info->found_outputs.is_unlock_or_change_output_found) {
+            PRINT("Missing unlock output for unlock TX\n");
+            info->type |= TYPE_TX_INVALID;
+        }
+    }
 
     return info->type;
 }
@@ -353,19 +418,29 @@ static tx_type_t validate_transaction(dispatcher_context_t *dc,
                                       const uint8_t internal_outputs[64],
                                       core_dao_tx_info_t *info) {
     // This application implements the following rules:
+    // For lock TX:
     // - If a transaction contains a OP_RETURN output, It must be a valid CoreDAO output
     // - If a transaction contains a OP_RETURN output, It must have a locking output
     // - The PSBT can have at most 1 change output
     // - The PSBT can have any number of CoreDAO inputs
     // - The PSBT can have any number of internal inputs
-    // - If at least one input is a CoreDAO input, outputs can only be internal or lock output
+    // - If at least one input is a CoreDAO input, outputs can only be change or lock output
+    // For unlock TX:
+    // - If a transaction contains a spending CLTV UTXO input, it must be a valid CoreDao unlock TX
+    // - If a transaction contains a spending CLTV UTXO input, it must have 1 unlocking output
+    // For combined unlock/lock (restake) TX:
+    // - All rules for both lock and unlock transactions apply, except that such a
+    //   transaction should not have a change or unlocking output.
 
     tx_type_t tx_type = TYPE_TX_UNKNOWN;
     PRINT("Validating transaction\n");
-    tx_type |= validate_unlock_transaction(dc, st, internal_inputs, info);
+    tx_type |= validate_unlock_transaction(dc, st, internal_inputs, internal_outputs, info);
     if (!(tx_type & TYPE_TX_INVALID)) {
         tx_type |= validate_lock_transaction(dc, st, internal_outputs, info);
     }
+
+    tx_type |= validate_found_outputs_for_tx_type(info);
+
     return tx_type;
 }
 

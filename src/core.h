@@ -41,6 +41,13 @@ typedef enum {
 } tx_type_t;
 
 typedef struct {
+    bool is_stacking_info_output_found;
+    bool is_lock_output_found;
+    bool is_unlock_or_change_output_found;
+    uint32_t unlock_or_change_output_num;
+} core_dao_tx_outputs_t;
+
+typedef struct {
     // Global information
     tx_type_t type;
 
@@ -55,6 +62,7 @@ typedef struct {
     // Unstake information
     uint64_t unlock_amount;
     uint32_t n_core_dao_inputs;
+    core_dao_tx_outputs_t found_outputs;
     uint8_t core_inputs[64];
 } core_dao_tx_info_t;
 
