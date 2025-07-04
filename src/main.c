@@ -244,7 +244,7 @@ static tx_type_t validate_lock_transaction(dispatcher_context_t *dc,
             st->outputs.change_total_amount += amount;
         } else if (bitvector_get(internal_outputs, i) == 1) {
             // Error only in case duplicated change output is found,
-            // if we already seen it during valaidation of unlock TX it's not an error
+            // if we already seen it during validation of unlock TX it's not an error
             if (info->found_outputs.is_unlock_or_change_output_found &&
                 info->found_outputs.unlock_or_change_output_num != i) {
                 PRINT("Found duplicated change output (internal)\n");
