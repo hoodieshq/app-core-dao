@@ -11,7 +11,7 @@ This repository implements the CoreDAO protocol for **clear-signing** Bitcoin PS
 | **Restake** | “combined unlock + lock” | Atomically release a matured stake and create a new stake in the same TX | Internal inputs ✚ the spent locking UTXO; obeys *all* lock & unlock rules **except** it must **not** have a change or unlocking output |
 
 #### 1. General
-* The dedicated lock output is always derived from the unique BIP-84 path `84h/0h/0h/0/0` (or `84h/0h/0h/0/0` for testnet).
+* The dedicated lock output is always derived from the unique BIP-84 path `84h/0h/0h/0/0` (or `84h/1h/0h/0/0` for testnet).
 * A PSBT may contain any number of **internal inputs** (regular wallet UTXOs).
 * A PSBT may contain any number of **CoreDAO inputs** (previous lock outputs).
 
