@@ -389,7 +389,6 @@ static tx_type_t validate_unlock_transaction(dispatcher_context_t *dc,
 }
 
 static tx_type_t validate_found_outputs_for_tx_type(core_dao_tx_info_t *info) {
-
     if (info->type & TYPE_TX_INVALID) {
         return info->type;
     }
