@@ -28,6 +28,7 @@ APPVERSION = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
 APPDEVELOPPER="Ledger"
 APPCOPYRIGHT="(c) 2025 Ledger"
 
+VARIANT_PARAM = COIN
 VARIANT_VALUES = core_dao core_dao_testnet
 
 # simplify for tests
